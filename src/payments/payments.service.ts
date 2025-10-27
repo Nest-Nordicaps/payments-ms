@@ -1,34 +1,55 @@
-import { Body, Inject, Injectable } from '@nestjs/common';
-import { CreatePaymentDto } from './dto/create-payment.dto';
-import { UpdatePaymentDto } from './dto/update-payment.dto';
+import { Injectable, OnModuleInit } from '@nestjs/common';
+
 import { MercadoPagoConfig, Preference } from 'mercadopago';
 import { envs } from 'src/config/envs';
+import { PaymentSessionDto } from './dto/session-payment.dto';
+import { title } from 'process';
+import { url } from 'inspector';
 
 @Injectable()
-export class PaymentsService {
-  private readonly clientMp = new MercadoPagoConfig({
-    accessToken: envs.mercadopagoAccessToken,
-    options: { timeout: 5000 },
-  });
+export class PaymentsService implements OnModuleInit {
+  private clientMp: MercadoPagoConfig;
+  private preference: Preference;
 
-  private readonly preference = new Preference(this.clientMp);
+  onModuleInit() {
+    this.clientMp = new MercadoPagoConfig({
+      accessToken: envs.mercadopagoAccessToken,
+      options: { timeout: 5000 },
+    });
 
-  //ANDA, CREA UNA PREFERENCIA DE MERCADOPAGO Y PAGAR CON CHECKOUT
-  create() {
-    const createOrder = this.preference.create({
+    this.preference = new Preference(this.clientMp);
+  }
+
+  //CREA UNA PREFERENCIA DE MERCADOPAGO Y PAGAR CON CHECKOUT
+  async createPaymentSession(paymentSessionDto: PaymentSessionDto) {
+    const { orderId, currency, items } = paymentSessionDto;
+
+    const preferenceItems = items.map((item) => {
+      return {
+        id: item.productId.toString(),
+        title: item.name,
+        quantity: item.quantity,
+        unit_price: item.price,
+        currency_id: currency.toUpperCase(), // 'ARS' o 'USD' ( en este caso se usa ARS )
+      };
+    });
+
+    const preference = await this.preference.create({
       body: {
-        items: [
-          {
-            id: '1',
-            title: 'Mi producto',
-            quantity: 1,
-            unit_price: 2000,
-          },
-        ],
+        items: preferenceItems,
+        external_reference: orderId,
+        metadata: {
+          order_id: orderId,
+        },
+
+        binary_mode: true,
       },
     });
 
-    return createOrder;
+    return {
+      id: preference.id,
+      url: preference.init_point,
+    };
   }
 
   findAll() {
@@ -37,13 +58,5 @@ export class PaymentsService {
 
   findOne(id: number) {
     return `This action returns a #${id} payment`;
-  }
-
-  update(id: number, updatePaymentDto: UpdatePaymentDto) {
-    return `This action updates a #${id} payment`;
-  }
-
-  remove(id: number) {
-    return `This action removes a #${id} payment`;
   }
 }
