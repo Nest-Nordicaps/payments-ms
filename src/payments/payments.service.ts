@@ -3,8 +3,7 @@ import { Injectable, OnModuleInit } from '@nestjs/common';
 import { MercadoPagoConfig, Preference } from 'mercadopago';
 import { envs } from 'src/config/envs';
 import { PaymentSessionDto } from './dto/session-payment.dto';
-import { title } from 'process';
-import { url } from 'inspector';
+import { Request, Response } from 'express';
 
 @Injectable()
 export class PaymentsService implements OnModuleInit {
@@ -43,6 +42,7 @@ export class PaymentsService implements OnModuleInit {
         },
 
         binary_mode: true,
+        notification_url: 'https://hkdk.events/ifaeytvmlfil04',
       },
     });
 
@@ -58,5 +58,14 @@ export class PaymentsService implements OnModuleInit {
 
   findOne(id: number) {
     return `This action returns a #${id} payment`;
+  }
+
+  async mpWebhook(req: Request, res: Response) {
+    console.log('Webhook MP recibido puto:', req.body);
+
+    const sig = req.headers['x-signature'] as string;
+
+    res.status(200).json({ sig });
+    return;
   }
 }
