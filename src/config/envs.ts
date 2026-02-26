@@ -6,6 +6,8 @@ interface EnvVars {
 
   MERCADOPAGO_ACCESS_TOKEN: string;
   MERCADOPAGO_PUBLIC_KEY: string;
+  MERCADOPAGO_WEBHOOK_SECRET: string;
+  MERCADOPAGO_WEBHOOK_URL: string;
 
   NATS_SERVERS: string[];
 }
@@ -16,6 +18,8 @@ const envsSchema = joi
 
     MERCADOPAGO_ACCESS_TOKEN: joi.string().required(),
     MERCADOPAGO_PUBLIC_KEY: joi.string().required(),
+    MERCADOPAGO_WEBHOOK_SECRET: joi.string().required(),
+    MERCADOPAGO_WEBHOOK_URL: joi.string().required(),
 
     NATS_SERVERS: joi.array().items(joi.string()).required(),
   })
@@ -37,6 +41,8 @@ export const envs = {
 
   mercadopagoAccessToken: envsVars.MERCADOPAGO_ACCESS_TOKEN,
   mercadopagoPublicKey: envsVars.MERCADOPAGO_PUBLIC_KEY,
+  mercadopagoWebhookSecret: envsVars.MERCADOPAGO_WEBHOOK_SECRET,
+  mercadopagoWebhookUrl: envsVars.MERCADOPAGO_WEBHOOK_URL,
 
   natsServers: envsVars.NATS_SERVERS,
 };
